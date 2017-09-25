@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Objective-C,高德地图,定位," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="前言之前公司老板看上人家美团的这个效果，要在我们公司项目里选择地址的时候也用这种方法就研究了下，但是人家这个是用来精准定位的，我们一个电商APP老板非要这样做，结果并没有多大的卵用。我们先看个效果图。 集成高德地图SDK(1) 去高德地图开放平台添加你的应用，然后申请appkey；(2) 按照开发文档下载SDK到自己的项目中集成；(3) 在AppDelegate.m的didFinishLaunch">
+<meta name="keywords" content="Objective-C,高德地图,定位">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高德地图-仿美团外卖可拖拽地图定位">
+<meta property="og:url" content="http://yoursite.com/2017/09/25/高德地图仿美团定位/index.html">
+<meta property="og:site_name" content="如果我睡着了世界就和我没有关系">
+<meta property="og:description" content="前言之前公司老板看上人家美团的这个效果，要在我们公司项目里选择地址的时候也用这种方法就研究了下，但是人家这个是用来精准定位的，我们一个电商APP老板非要这样做，结果并没有多大的卵用。我们先看个效果图。 集成高德地图SDK(1) 去高德地图开放平台添加你的应用，然后申请appkey；(2) 按照开发文档下载SDK到自己的项目中集成；(3) 在AppDelegate.m的didFinishLaunch">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2017/09/25/高德地图仿美团定位/AMap1.gif">
+<meta property="og:updated_time" content="2017-09-25T02:49:39.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="高德地图-仿美团外卖可拖拽地图定位">
+<meta name="twitter:description" content="前言之前公司老板看上人家美团的这个效果，要在我们公司项目里选择地址的时候也用这种方法就研究了下，但是人家这个是用来精准定位的，我们一个电商APP老板非要这样做，结果并没有多大的卵用。我们先看个效果图。 集成高德地图SDK(1) 去高德地图开放平台添加你的应用，然后申请appkey；(2) 按照开发文档下载SDK到自己的项目中集成；(3) 在AppDelegate.m的didFinishLaunch">
+<meta name="twitter:image" content="http://yoursite.com/2017/09/25/高德地图仿美团定位/AMap1.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/25/高德地图仿美团定位/"/>
+
+
+
+
+
+  <title>高德地图-仿美团外卖可拖拽地图定位 | 如果我睡着了世界就和我没有关系</title>
+  
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">如果我睡着了世界就和我没有关系</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">做一个善良的女子。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/25/高德地图仿美团定位/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="宋雁翎">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/sylheader.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="如果我睡着了世界就和我没有关系">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">高德地图-仿美团外卖可拖拽地图定位</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-25T10:23:52+08:00">
+                2017-09-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/iOS/" itemprop="url" rel="index">
+                    <span itemprop="name">iOS</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>之前公司老板看上人家美团的这个效果，要在我们公司项目里选择地址的时候也用这种方法就研究了下，但是人家这个是用来精准定位的，我们一个电商APP老板非要这样做，结果并没有多大的卵用。我们先看个效果图。<br><img src="/2017/09/25/高德地图仿美团定位/./AMap1.gif" alt="Alt text"></p>
+<h1 id="集成高德地图SDK"><a href="#集成高德地图SDK" class="headerlink" title="集成高德地图SDK"></a>集成高德地图SDK</h1><p>(1) 去高德地图开放平台添加你的应用，然后申请appkey；<br>(2) 按照开发文档下载SDK到自己的项目中集成；<br>(3) 在AppDelegate.m的didFinishLaunchingWithOptions方法中设置appkey，现在的版本只需用如下方法设置：</p>
+<pre class=" language-python"><code class="language-python"><span class="token punctuation">[</span>AMapServices sharedServices<span class="token punctuation">]</span><span class="token punctuation">.</span>apiKey <span class="token operator">=</span> @<span class="token string">"你的key"</span><span class="token punctuation">;</span>
+</code></pre>
+<h1 id="初始化相关控件"><a href="#初始化相关控件" class="headerlink" title="初始化相关控件"></a>初始化相关控件</h1><p>1.初始化MAMapView地图控件和AMapSearchAPI搜索控服务</p>
+<pre class=" language-python"><code class="language-python">    search <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>AMapSearchAPI alloc<span class="token punctuation">]</span> init<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    search<span class="token punctuation">.</span>delegate <span class="token operator">=</span> self<span class="token punctuation">;</span>
+
+    <span class="token operator">//</span>初始化mapView
+    myMapView <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>MAMapView alloc<span class="token punctuation">]</span> initWithFrame<span class="token punctuation">:</span>CGRectMake<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">64</span><span class="token punctuation">,</span> allScreen<span class="token punctuation">.</span>width<span class="token punctuation">,</span> <span class="token punctuation">(</span>allScreen<span class="token punctuation">.</span>height <span class="token operator">-</span> <span class="token number">64</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    myMapView<span class="token punctuation">.</span>mapType <span class="token operator">=</span> MAMapTypeStandard<span class="token punctuation">;</span>   <span class="token operator">//</span>地图类型 普通地图<span class="token operator">|</span>卫星地图
+    myMapView<span class="token punctuation">.</span>showsCompass <span class="token operator">=</span> NO<span class="token punctuation">;</span>             <span class="token operator">//</span>是否显示罗盘
+    myMapView<span class="token punctuation">.</span>showsScale <span class="token operator">=</span> NO<span class="token punctuation">;</span>               <span class="token operator">//</span>是否显示比例尺
+    myMapView<span class="token punctuation">.</span>delegate <span class="token operator">=</span> self<span class="token punctuation">;</span>
+    <span class="token punctuation">[</span>myMapView setZoomLevel<span class="token punctuation">:</span><span class="token number">17.5</span> animated<span class="token punctuation">:</span>YES<span class="token punctuation">]</span><span class="token punctuation">;</span>              <span class="token operator">//</span>设置当前地图的缩放级别
+    myMapView<span class="token punctuation">.</span>userTrackingMode <span class="token operator">=</span> MAUserTrackingModeFollow<span class="token punctuation">;</span>   <span class="token operator">//</span>追踪用户的location更新
+    myMapView<span class="token punctuation">.</span>showsUserLocation <span class="token operator">=</span> YES<span class="token punctuation">;</span>                       <span class="token operator">//</span>是否显示用户位置
+
+    <span class="token operator">//</span>高德地图logo位置<span class="token punctuation">,</span> 必须在mapView<span class="token punctuation">.</span>bounds之内，否则会被忽略<span class="token punctuation">(</span>这里设置的右下角<span class="token punctuation">)</span>
+    myMapView<span class="token punctuation">.</span>logoCenter <span class="token operator">=</span> CGPointMake<span class="token punctuation">(</span>myMapView<span class="token punctuation">.</span>frame<span class="token punctuation">.</span>size<span class="token punctuation">.</span>width <span class="token operator">-</span> <span class="token number">40</span><span class="token punctuation">,</span> myMapView<span class="token punctuation">.</span>frame<span class="token punctuation">.</span>size<span class="token punctuation">.</span>height <span class="token operator">-</span> <span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token operator">//</span>地图中心那个图标
+    poiView <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>UIImageView alloc<span class="token punctuation">]</span>initWithImage<span class="token punctuation">:</span><span class="token punctuation">[</span>UIImage imageNamed<span class="token punctuation">:</span>@<span class="token string">"map_point_r"</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    poiView<span class="token punctuation">.</span>frame <span class="token operator">=</span> CGRectMake<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    poiView<span class="token punctuation">.</span>center <span class="token operator">=</span> CGPointMake<span class="token punctuation">(</span><span class="token punctuation">[</span>UIScreen mainScreen<span class="token punctuation">]</span><span class="token punctuation">.</span>bounds<span class="token punctuation">.</span>size<span class="token punctuation">.</span>width<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>myMapView<span class="token punctuation">.</span>frame<span class="token punctuation">.</span>size<span class="token punctuation">.</span>height <span class="token operator">-</span> <span class="token number">30</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">[</span>myMapView addSubview<span class="token punctuation">:</span>poiView<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>2.管理MAMapView的生命周期</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>viewWillAppear<span class="token punctuation">:</span><span class="token punctuation">(</span>BOOL<span class="token punctuation">)</span>animated <span class="token punctuation">{</span>
+    myMapView<span class="token punctuation">.</span>delegate <span class="token operator">=</span> self<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>viewDidDisappear<span class="token punctuation">:</span><span class="token punctuation">(</span>BOOL<span class="token punctuation">)</span>animated <span class="token punctuation">{</span>
+    myMapView<span class="token punctuation">.</span>delegate <span class="token operator">=</span> nil<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>3.判断定位是否可用并且初始化定位信息</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">/</span><span class="token operator">**</span>
+ 判断定位是否可用并且初始化定位信息
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>initLocation<span class="token punctuation">{</span>
+
+    CLAuthorizationStatus status <span class="token operator">=</span> <span class="token punctuation">[</span>CLLocationManager authorizationStatus<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    CLAuthorizationStatus statuss <span class="token operator">=</span> <span class="token punctuation">[</span>CLLocationManager locationServicesEnabled<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>kCLAuthorizationStatusNotDetermined<span class="token operator">==</span>statuss<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token punctuation">[</span><span class="token punctuation">[</span>AlertModel new<span class="token punctuation">]</span> showAlertView<span class="token punctuation">:</span>self title<span class="token punctuation">:</span>@<span class="token string">"您已经关闭了定位功能"</span> message<span class="token punctuation">:</span>@<span class="token string">"启用位置服务，即可获取信息。"</span> cancelButtonTitle<span class="token punctuation">:</span>@<span class="token string">"取消"</span> otherButtonTitle<span class="token punctuation">:</span>@<span class="token string">"去设置"</span> cancle<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+
+        <span class="token punctuation">}</span> confirm<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+            <span class="token punctuation">[</span><span class="token punctuation">[</span>UIApplication sharedApplication<span class="token punctuation">]</span> openURL<span class="token punctuation">:</span><span class="token punctuation">[</span>NSURL URLWithString<span class="token punctuation">:</span>UIApplicationOpenSettingsURLString<span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+        <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">;</span>      
+    <span class="token punctuation">}</span><span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>kCLAuthorizationStatusDenied <span class="token operator">==</span> status <span class="token punctuation">)</span><span class="token punctuation">{</span>
+
+        <span class="token punctuation">[</span><span class="token punctuation">[</span>AlertModel new<span class="token punctuation">]</span> showAlertView<span class="token punctuation">:</span>self title<span class="token punctuation">:</span>@<span class="token string">"您已经关闭了定位功能"</span> message<span class="token punctuation">:</span>@<span class="token string">"启用位置服务，即可获取信息。"</span> cancelButtonTitle<span class="token punctuation">:</span>@<span class="token string">"取消"</span> otherButtonTitle<span class="token punctuation">:</span>@<span class="token string">"去设置"</span> cancle<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+
+        <span class="token punctuation">}</span> confirm<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+            <span class="token punctuation">[</span><span class="token punctuation">[</span>UIApplication sharedApplication<span class="token punctuation">]</span> openURL<span class="token punctuation">:</span><span class="token punctuation">[</span>NSURL URLWithString<span class="token punctuation">:</span>UIApplicationOpenSettingsURLString<span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+        <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        <span class="token operator">//</span>定位功能可用，开始定位
+        <span class="token punctuation">[</span>AMapServices sharedServices<span class="token punctuation">]</span><span class="token punctuation">.</span>enableHTTPS <span class="token operator">=</span> YES<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h1 id="回调处理"><a href="#回调处理" class="headerlink" title="回调处理"></a>回调处理</h1><p>位置信息更新或者拖拽地图之后会走这个回调<br>regionDidChangeAnimated<br>位置变化更新的时候添加了一个动画效果，看起来会更好一点。</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>添加一个图标的动画效果
+<span class="token punctuation">[</span>UIView animateWithDuration<span class="token punctuation">:</span><span class="token number">0.3</span> delay<span class="token punctuation">:</span><span class="token number">0.</span><span class="token number">0f</span> options<span class="token punctuation">:</span>UIViewAnimationOptionCurveEaseOut animations<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+        poiView<span class="token punctuation">.</span>center <span class="token operator">=</span> CGPointMake<span class="token punctuation">(</span><span class="token punctuation">[</span>UIScreen mainScreen<span class="token punctuation">]</span><span class="token punctuation">.</span>bounds<span class="token punctuation">.</span>size<span class="token punctuation">.</span>width<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">150</span> <span class="token operator">-</span> <span class="token number">35</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> completion<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">(</span>BOOL finished<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token punctuation">[</span>UIView animateWithDuration<span class="token punctuation">:</span><span class="token number">0.3</span> delay<span class="token punctuation">:</span><span class="token number">0.</span><span class="token number">0f</span> options<span class="token punctuation">:</span>UIViewAnimationOptionCurveEaseOut animations<span class="token punctuation">:</span><span class="token operator">^</span><span class="token punctuation">{</span>
+            poiView<span class="token punctuation">.</span>center <span class="token operator">=</span> CGPointMake<span class="token punctuation">(</span><span class="token punctuation">[</span>UIScreen mainScreen<span class="token punctuation">]</span><span class="token punctuation">.</span>bounds<span class="token punctuation">.</span>size<span class="token punctuation">.</span>width<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">150</span> <span class="token operator">-</span> <span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> completion<span class="token punctuation">:</span>nil<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="周边检索"><a href="#周边检索" class="headerlink" title="周边检索"></a>周边检索</h2><pre class=" language-python"><code class="language-python">然后根据更新的坐标发起周边搜索
+<span class="token operator">//</span>构造AMapPOIAroundSearchRequest对象，设置周边请求参数
+    AMapPOIAroundSearchRequest <span class="token operator">*</span>request <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>AMapPOIAroundSearchRequest alloc<span class="token punctuation">]</span> init<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>location <span class="token operator">=</span> <span class="token punctuation">[</span>AMapGeoPoint locationWithLatitude<span class="token punctuation">:</span>mapView<span class="token punctuation">.</span>centerCoordinate<span class="token punctuation">.</span>latitude longitude<span class="token punctuation">:</span>mapView<span class="token punctuation">.</span>centerCoordinate<span class="token punctuation">.</span>longitude<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token operator">//</span> types属性表示限定搜索POI的类别，默认为：餐饮服务<span class="token operator">|</span>商务住宅<span class="token operator">|</span>生活服务
+    <span class="token operator">//</span> request<span class="token punctuation">.</span>types <span class="token operator">=</span> @<span class="token string">"高等院校|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施"</span><span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>types <span class="token operator">=</span> @<span class="token string">""</span><span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>sortrule <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>       <span class="token operator">//</span>距离排序
+    request<span class="token punctuation">.</span>requireExtension <span class="token operator">=</span> YES<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>offset <span class="token operator">=</span> MAXCOUNT<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>page <span class="token operator">=</span> pageIndex<span class="token punctuation">;</span>
+    NSLog<span class="token punctuation">(</span>@<span class="token string">"周边搜索"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">[</span>activityView startAnimating<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    activityBackView<span class="token punctuation">.</span>hidden <span class="token operator">=</span> NO<span class="token punctuation">;</span>
+    <span class="token operator">//</span>发起周边搜索
+    <span class="token punctuation">[</span>search AMapPOIAroundSearch<span class="token punctuation">:</span> request<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="关键词检索"><a href="#关键词检索" class="headerlink" title="关键词检索"></a>关键词检索</h2><p>严格来讲我做的这个不是关键词检索，关键词检索用到的API是：</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">/</span><span class="token operator">**</span>
+ <span class="token operator">*</span> @brief POI 关键字查询接口
+ <span class="token operator">*</span> @param request 查询选项。具体属性字段请参考 AMapPOIKeywordsSearchRequest 类。
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>AMapPOIKeywordsSearch<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapPOIKeywordsSearchRequest <span class="token operator">*</span><span class="token punctuation">)</span>request<span class="token punctuation">;</span>
+</code></pre>
+<p>我这里用到的是根据输入提示查询，因为用关键词检索的时候有的较模糊的搜不出来，老板不开心，后来我发现这个输入法提示的很准确，但是搜索出的内容不可以控制多少条，默认就是10条左右，这个选择上看项目了。</p>
+<p>输入提示查询接口</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">/</span><span class="token operator">**</span>
+ <span class="token operator">*</span> @brief 输入提示查询接口
+ <span class="token operator">*</span> @param request 查询选项。具体属性字段请参考 AMapInputTipsSearchRequest 类。
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>AMapInputTipsSearch<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapInputTipsSearchRequest <span class="token operator">*</span><span class="token punctuation">)</span>request<span class="token punctuation">;</span>
+</code></pre>
+<p>关键词查询接口</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">/</span><span class="token operator">**</span>
+ <span class="token operator">*</span> @brief POI 关键字查询接口
+ <span class="token operator">*</span> @param request 查询选项。具体属性字段请参考 AMapPOIKeywordsSearchRequest 类。
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>AMapPOIKeywordsSearch<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapPOIKeywordsSearchRequest <span class="token operator">*</span><span class="token punctuation">)</span>request<span class="token punctuation">;</span>
+</code></pre>
+<p>下面我两种检索的相关设置都放一下</p>
+<pre class=" language-python"><code class="language-python">    <span class="token operator">//</span>关键词检索
+    AMapPOIKeywordsSearchRequest <span class="token operator">*</span>request <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>AMapPOIKeywordsSearchRequest alloc<span class="token punctuation">]</span> init<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    request<span class="token punctuation">.</span>keywords            <span class="token operator">=</span> keyword<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>city                <span class="token operator">=</span> locationCity<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>types               <span class="token operator">=</span> @<span class="token string">"高等院校|餐饮服务|购物服务|生活服务|体育休闲服务|医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施"</span><span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>requireExtension    <span class="token operator">=</span> YES<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>offset <span class="token operator">=</span> MAXCOUNT<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>cityLimit           <span class="token operator">=</span> NO<span class="token punctuation">;</span>  <span class="token operator">//</span>不做城市限定
+    request<span class="token punctuation">.</span>requireSubPOIs      <span class="token operator">=</span> YES<span class="token punctuation">;</span>
+    request<span class="token punctuation">.</span>page <span class="token operator">=</span> pageIndex<span class="token punctuation">;</span>
+    <span class="token punctuation">[</span>activityView startAnimating<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    activityBackView<span class="token punctuation">.</span>hidden <span class="token operator">=</span> NO<span class="token punctuation">;</span>
+
+    <span class="token operator">//</span>发起关键词搜索
+    <span class="token punctuation">[</span>search AMapPOIKeywordsSearch<span class="token punctuation">:</span>request<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<pre class=" language-python"><code class="language-python">    <span class="token operator">//</span>输入提示查询
+    AMapInputTipsSearchRequest <span class="token operator">*</span>tips <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>AMapInputTipsSearchRequest alloc<span class="token punctuation">]</span> init<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    tips<span class="token punctuation">.</span>keywords <span class="token operator">=</span> keyword<span class="token punctuation">;</span>
+    tips<span class="token punctuation">.</span>city <span class="token operator">=</span> @<span class="token string">""</span><span class="token punctuation">;</span>
+    tips<span class="token punctuation">.</span>cityLimit <span class="token operator">=</span> NO<span class="token punctuation">;</span> <span class="token operator">//</span>是否限制城市
+    <span class="token punctuation">[</span>activityView startAnimating<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    activityBackView<span class="token punctuation">.</span>hidden <span class="token operator">=</span> NO<span class="token punctuation">;</span>
+    <span class="token operator">//</span>发起输入提示查询
+    <span class="token punctuation">[</span>search AMapInputTipsSearch<span class="token punctuation">:</span>tips<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="检索回调处理"><a href="#检索回调处理" class="headerlink" title="检索回调处理"></a>检索回调处理</h2><p>回调返回的信息包含了，地址城市，经纬度等信息。</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">/</span><span class="token operator">**</span>
+ <span class="token operator">*</span> @brief POI查询回调函数
+ <span class="token operator">*</span> @param request  发起的请求，具体字段参考 AMapPOISearchBaseRequest 及其子类。
+ <span class="token operator">*</span> @param response 响应结果，具体字段参考 AMapPOISearchResponse 。
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>onPOISearchDone<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapPOISearchBaseRequest <span class="token operator">*</span><span class="token punctuation">)</span>request response<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapPOISearchResponse <span class="token operator">*</span><span class="token punctuation">)</span>response<span class="token punctuation">;</span>
+
+<span class="token operator">/</span><span class="token operator">**</span>
+ <span class="token operator">*</span> @brief 输入提示查询回调函数
+ <span class="token operator">*</span> @param request  发起的请求，具体字段参考 AMapInputTipsSearchRequest 。
+ <span class="token operator">*</span> @param response 响应结果，具体字段参考 AMapInputTipsSearchResponse 。
+ <span class="token operator">*</span><span class="token operator">/</span>
+<span class="token operator">-</span> <span class="token punctuation">(</span>void<span class="token punctuation">)</span>onInputTipsSearchDone<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapInputTipsSearchRequest <span class="token operator">*</span><span class="token punctuation">)</span>request response<span class="token punctuation">:</span><span class="token punctuation">(</span>AMapInputTipsSearchResponse <span class="token operator">*</span><span class="token punctuation">)</span>response<span class="token punctuation">;</span>
+</code></pre>
+<p>高德地图API里还有很多搜索的方法都可以根据实际情况自己选择。大致的流程就是这些了，主要的方法调用的API差不多我都写出来了，如果要做这一块多看看官方的文档，基本你想要实现的功能都有办法实现的。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          
+            <a href="/tags/高德地图/" rel="tag"># 高德地图</a>
+          
+            <a href="/tags/定位/" rel="tag"># 定位</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/13/小黑的猫瘟治疗记录/" rel="next" title="小黑的猫瘟治疗记录">
+                <i class="fa fa-chevron-left"></i> 小黑的猫瘟治疗记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/sylheader.jpg"
+               alt="宋雁翎" />
+          <p class="site-author-name" itemprop="name">宋雁翎</p>
+           
+              <p class="site-description motion-element" itemprop="description">心不怨恨则伟大，心存宽恕则圣洁。</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#集成高德地图SDK"><span class="nav-number">2.</span> <span class="nav-text">集成高德地图SDK</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化相关控件"><span class="nav-number">3.</span> <span class="nav-text">初始化相关控件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回调处理"><span class="nav-number">4.</span> <span class="nav-text">回调处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#周边检索"><span class="nav-number">4.1.</span> <span class="nav-text">周边检索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关键词检索"><span class="nav-number">4.2.</span> <span class="nav-text">关键词检索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检索回调处理"><span class="nav-number">4.3.</span> <span class="nav-text">检索回调处理</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">宋雁翎</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Muse
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
