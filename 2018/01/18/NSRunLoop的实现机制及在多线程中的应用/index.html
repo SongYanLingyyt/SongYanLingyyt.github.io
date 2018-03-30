@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Objective-C,NSRunLoop,多线程," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1. NSRunLoop的实现机制1.1 NSRunLoop与程序NSRunLoop是iOS的消息机制的处理模式一个iOS程序启动后，整个应用程序一直运行没有退出，程序之所以没有直接退出是因为UIApplicationMain这个函数内部默认启动了一个跟主线程相关的NSRunloop对象，而UIApplicationMain这个函数一直执行没有返回就保存程序一直运行的状态。 下面用官方提供的一幅非">
+<meta name="keywords" content="Objective-C,NSRunLoop,多线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSRunLoop的实现机制及在多线程中的应用">
+<meta property="og:url" content="http://yoursite.com/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/index.html">
+<meta property="og:site_name" content="如果我睡着了世界就和我没有关系">
+<meta property="og:description" content="1. NSRunLoop的实现机制1.1 NSRunLoop与程序NSRunLoop是iOS的消息机制的处理模式一个iOS程序启动后，整个应用程序一直运行没有退出，程序之所以没有直接退出是因为UIApplicationMain这个函数内部默认启动了一个跟主线程相关的NSRunloop对象，而UIApplicationMain这个函数一直执行没有返回就保存程序一直运行的状态。 下面用官方提供的一幅非">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/1.png">
+<meta property="og:updated_time" content="2018-03-30T05:20:09.205Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NSRunLoop的实现机制及在多线程中的应用">
+<meta name="twitter:description" content="1. NSRunLoop的实现机制1.1 NSRunLoop与程序NSRunLoop是iOS的消息机制的处理模式一个iOS程序启动后，整个应用程序一直运行没有退出，程序之所以没有直接退出是因为UIApplicationMain这个函数内部默认启动了一个跟主线程相关的NSRunloop对象，而UIApplicationMain这个函数一直执行没有返回就保存程序一直运行的状态。 下面用官方提供的一幅非">
+<meta name="twitter:image" content="http://yoursite.com/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/"/>
+
+
+
+
+
+  <title>NSRunLoop的实现机制及在多线程中的应用 | 如果我睡着了世界就和我没有关系</title>
+  
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">如果我睡着了世界就和我没有关系</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">做一个善良的女子。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="宋雁翎">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/sylheader.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="如果我睡着了世界就和我没有关系">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">NSRunLoop的实现机制及在多线程中的应用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-18T11:15:23+08:00">
+                2018-01-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/iOS/" itemprop="url" rel="index">
+                    <span itemprop="name">iOS</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="1-NSRunLoop的实现机制"><a href="#1-NSRunLoop的实现机制" class="headerlink" title="1. NSRunLoop的实现机制"></a>1. NSRunLoop的实现机制</h3><h4 id="1-1-NSRunLoop与程序"><a href="#1-1-NSRunLoop与程序" class="headerlink" title="1.1 NSRunLoop与程序"></a>1.1 NSRunLoop与程序</h4><p>NSRunLoop是iOS的消息机制的处理模式<br>一个iOS程序启动后，整个应用程序一直运行没有退出，程序之所以没有直接退出是因为UIApplicationMain这个函数内部默认启动了一个跟主线程相关的NSRunloop对象，而UIApplicationMain这个函数一直执行没有返回就保存程序一直运行的状态。</p>
+<p>下面用官方提供的一幅非常经典的图片，来认识NSRunloop循环处理时间的流程。<br><img src="/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/./1.png" alt="Alt text"><br>通过所有的“消息”都被添加到了NSRunLoop中去，而在这里这些消息并分为“input source”和“Timer source” 并在循环中检查是不是有事件需要发生，如果需要那么就调用相应的函数处理。由此形成了运行-&gt;检测-&gt;休眠 -&gt;运行 的循环状态。</p>
+<blockquote>
+<p>1.NSRunLoop的主要作用：控制NSRunLoop里面线程的执行和休眠，在有事情做的时候使当前NSRunLoop控制的线程工作，没有事情做让当前NSRunLoop的控制的线程休眠。<br>2.NSRunLoop 就是一直在循环检测，从线程start到线程end，检测inputsource(如点击，双击等操作)异步事件，检测timesource同步事件，检测到输入源会执行处理函数，首先会产生通知，corefunction向线程添加runloop observers来监听事件，意在监听事件发生时来做处理。<br>3.runloopmode是一个集合，包括监听：事件源，定时器，以及需通知的runloop observers</p>
+</blockquote>
+<h4 id="1-2-NSRunLoop与线程之间的关系"><a href="#1-2-NSRunLoop与线程之间的关系" class="headerlink" title="1.2 NSRunLoop与线程之间的关系"></a>1.2 NSRunLoop与线程之间的关系</h4><p>简单说，一条线程对应一个NSRunloop对象。主线程NSRunloop对象是默认开启的，其他线程的NSRunloop对象需要手动获取。其实NSRunloop对象是懒加载的，所以不需要实例化这个类，而是直接调用获取线程Runloop的方法即可唤醒。Runloop在第一次获取时创建，在线程结束时销毁。保持NSRunloop一直存在的方法稍后介绍。</p>
+<h5 id="1-2-1-NSRunloop常用方法"><a href="#1-2-1-NSRunloop常用方法" class="headerlink" title="1.2.1 NSRunloop常用方法"></a>1.2.1 NSRunloop常用方法</h5><p>Foundation -&gt;NSRunloop</p>
+<ul>
+<li>+(NSRunLoop *)currentRunLoop; //获得当前线程的run loop</li>
+<li>+(NSRunLoop *)mainRunLoop; //获得主线程的run loop</li>
+<li>+(void)run; //进入处理事件循环,如果没有事件则立刻返回。注意:主线程上调用这个方法会导致无法返回(进入无限循环,虽然不会阻塞主线程),因为主线程一般总是会有事件处理。</li>
+<li>+(void)runUntilDate:(NSDate *)limitDate; //同run方法,增加超时参数limitDate,避免进入无限循环。使用在UI线程(亦即主线程)上,可以达到暂停的效果。</li>
+<li>+(BOOL)runMode:(NSString <em>)mode beforeDate:(NSDate </em>)limitDate; //等待消息处理,好比在PC终端窗口上等待键盘输入。一旦有合适事件(mode相当于定义了事件的类型)被处理了,则立刻返回;类同run方法,如果没有事件处理也立刻返回;有否事件处理由返回布尔值判断。同样limitDate为超时参数。</li>
+<li>+(void)acceptInputForMode:(NSString <em>)mode beforeDate:(NSDate </em>)limitDate; //似乎和runMode:差不多(测试过是这种结果,但确定是否有其它特殊情况下的不同),没有BOOL返回值。</li>
+</ul>
+<p>由<a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html" target="_blank" rel="external">苹果官方文档</a>可以看出线程和Runloop对象的对应关系。如果你仔细阅读可以从代码中可以看出runloop的存储方式是字典，而且key是线程。</p>
+<h5 id="1-2-2-Mode"><a href="#1-2-2-Mode" class="headerlink" title="1.2.2 Mode"></a>1.2.2 Mode</h5><p>Mode中有三个非常重要的组成部分，Timer（定时器）、 Source（事件源） 以及Observor（观察者）。一个 RunLoop 包含若干个 Mode，每个 Mode 又包含若干个 Source/Timer/Observer。首先要指出的是一个runloop启动时必须指定一个Mode  , 并且这个Mode被称为currentMode 。如果要切换Mode,只能退出runloop重新进入。这样做主要是为了分隔开不同组的 Source/Timer/Observer，让其互不影响。</p>
+<p>一种Runloop运行模式就是一个要监控的Input和Timer事件源的集合或者是一个要通知的Runloop观察者的集合。每次运行Runloop，都要指定一个运行模式(显示地或者隐式地)。在Runloop的运行期间，只有和当前运行模式相关的源才能被监控和允许发送事件。相似的，只有和当前运行模式相关的观察者才会被通知Runloop的行为。和其他模式相关的源会保留新的事件直到Runloop运行在了合适的模式才会分发。</p>
+<blockquote>
+<p>运行模式不是根据事件类型划分的，而是根据事件源划分的。我们不能通过模式来匹配鼠标按下事件或者键盘事件，但是我们可以用运行模式来监听一组不同的Port、暂时挂起Timers或者改变当前被监控的事件源和Runloop观察者。</p>
+</blockquote>
+<p>下面列举了一些Cocoa和Core Foundation定义的标准模式：</p>
+<ul>
+<li>NSDefaultRunLoopMode：默认的运行模式，用于大部分操作，除了NSConnection对象事件。</li>
+<li>NSConnectionReplyMode：用来监控NSConnection对象的回复的，很少能够用到。</li>
+<li>NSModalPanelRunLoopMode：用于标明和Mode Panel相关的事件。</li>
+<li>NSEventTrackingRunLoopMode：用于跟踪触摸事件触发的模式（例如UIScrollView上下滚动）。</li>
+<li>NSRunLoopCommonModes：是一个模式集合，当绑定一个事件源到这个模式集合的时候就相当于绑定到了集合内的每一个模式。Cocoa应用默认包含Default、Panel、Event Tracking模式，Core Foundation只包含Default模式，我们可以通过- CFRunLoopAddCommonMode添加模式。系统默认注册的Mode有五种</li>
+</ul>
+<h4 id="1-3-输入源-Input-Sources"><a href="#1-3-输入源-Input-Sources" class="headerlink" title="1.3  输入源(Input Sources)"></a>1.3  输入源(Input Sources)</h4><p>Input Sources异步地分发事件到线程。大概有两种类型的Input Sources，Port-based类型的输入源监控着应用的Mach端口，自定义的输入源监控着自定义的事件源。NSRunloop不关心输入源的类型。两种输入源唯一的不同是输入源的触发方式，Port-based输入源是由系统内核触发的，而自定义的输入源要我们自己触发。创建输入源的时候我们就给给输入源添加指定的模式。<br>Source分类:</p>
+<h5 id="1-3-1-Port-Based-Sources"><a href="#1-3-1-Port-Based-Sources" class="headerlink" title="1.3..1 Port-Based Sources"></a>1.3..1 Port-Based Sources</h5><p>Cocoa和Core Foundation提供了类和接口用来创建Port-Based源，Cocoa只要创建NSPort对象，并添加到NSRunloop中就可以啦，NSPort负责输入源的创建和配置。Core Foundation需要手动的常见port和输入源。</p>
+<h5 id="1-3-2-Custom-Input-Sources"><a href="#1-3-2-Custom-Input-Sources" class="headerlink" title="1.3.2 Custom Input Sources"></a>1.3.2 Custom Input Sources</h5><p>我们要用到CFRunLoopSourceRef函数创建输入源，并定义几个回调函数用于配置输入源、处理事件和删除输入源。事件的触发机制要我们自己定义。</p>
+<h5 id="1-3-3-Cocoa-Perform-Selector-Sources"><a href="#1-3-3-Cocoa-Perform-Selector-Sources" class="headerlink" title="1.3.3 Cocoa Perform Selector Sources"></a>1.3.3 Cocoa Perform Selector Sources</h5><p>Cocoa定义了可以在任何线程上执行方法的事件源，在想要执行的线程上执行方法是顺序执行的，避免了多个方法在线程上执行的同步问题。Perform Selector Sources在方法执行完之后就会自己从NSRunloop中删除。</p>
+<p>Perform Selector Sources要求目标线程的NSRunloop必须是运行的，主线程默认是运行的。NSRunloop在一次迭代过程中会处理所有的Perform Selector调用，而不是一次迭代处理一个Perform Selector调用。NSObject中定义的Perform Selector方法如下</p>
+<ul>
+<li>performSelectorOnMainThread:withObject:waitUntilDone:</li>
+<li>performSelectorOnMainThread:withObject:waitUntilDone:modes:</li>
+<li>performSelector:onThread:withObject:waitUntilDone:</li>
+<li>performSelector:onThread:withObject:waitUntilDone:modes:</li>
+<li>performSelector:withObject:afterDelay:</li>
+<li>performSelector:withObject:afterDelay:inModes:</li>
+<li>cancelPreviousPerformRequestsWithTarget:</li>
+<li>cancelPreviousPerformRequestsWithTarget:selector:object:</li>
+</ul>
+<p>延迟执行是在NSRunloop的下一次迭代中过了指定的延迟事件才执行。取消操作是针对延迟执行方法的。</p>
+<h4 id="1-4-Timer-Sources"><a href="#1-4-Timer-Sources" class="headerlink" title="1.4 Timer Sources"></a>1.4 Timer Sources</h4><p>Timer Sources同步地在将来的一个确定的时间分发事件到我们的线程。Timers可以让线程通知自己去处理一些事情。Timers不是一个实时的机制,当Timers触发的时候NSrunloop刚好正在执行处理函数，Timers会等待NSRunloop调用自己的处理函数。</p>
+<p>Timers可以创建一次性的和重复性的事件，当创建重复性的事件的时候，Timers只会根据规划好的触发时间来重新规划触发时间，而不是根据确切的触发时间。而且由于延迟触发丢失了几次触发的话，Timers只会补充一次触发。</p>
+<h4 id="1-5-NSRunloop观察者"><a href="#1-5-NSRunloop观察者" class="headerlink" title="1.5 NSRunloop观察者"></a>1.5 NSRunloop观察者</h4><p>不像是事件源一样在事件触发的时候执行处理函数。NSRunloop观察者是在NSRunloop几个执行的特定的点触发。NSRunloop可以观察的几个事件是：</p>
+<ul>
+<li>进入NSRunloop</li>
+<li>NSRunloop将要处理Timer事件</li>
+<li>NSRunloop将要处理Input事件</li>
+<li>NSRunloop将要进入睡眠</li>
+<li>NSRunloop被唤醒，但是是在处理事件之前</li>
+<li>退出NSRunloop</li>
+</ul>
+<p>创建观察者的方法是CFRunLoopObserverRef，我们可以通过Core Foundation方法添加到指定的NSRunloop。观察者也可以创建一次性的和重复性的。一次性的观察者触发之后就会从NSRunloop中删除。</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>创建observer
+CFRunLoopObserverRef observer <span class="token operator">=</span> CFRunLoopObserverCreateWithHandler<span class="token punctuation">(</span>CFAllocatorGetDefault<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> kCFRunLoopAllActivities<span class="token punctuation">,</span> YES<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">^</span><span class="token punctuation">(</span>CFRunLoopObserverRef observer<span class="token punctuation">,</span> CFRunLoopActivity activity<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+NSLog<span class="token punctuation">(</span>@<span class="token string">"----监听到RunLoop状态发生改变---%zd"</span><span class="token punctuation">,</span> activity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">//</span>添加观察者：监听RunLoop的状态
+CFRunLoopAddObserver<span class="token punctuation">(</span>CFRunLoopGetCurrent<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> observer<span class="token punctuation">,</span> kCFRunLoopDefaultMode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="2-实际应用"><a href="#2-实际应用" class="headerlink" title="2. 实际应用"></a>2. 实际应用</h3><h4 id="2-1-NSTimer"><a href="#2-1-NSTimer" class="headerlink" title="2.1 NSTimer"></a>2.1 NSTimer</h4><p>一个NSRunloop可以创建多个Timer,因为定时器只会运行在指定的Mode下 ，一旦Runloop进入其他模式， 定时器就不会工作了。<br>NSTimer的创建方法：</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>该方法默认添加到当前runloop，并且Mode为kCFRunloopDefaultMode。
+<span class="token punctuation">[</span>NSTimer scheduledTimerWithTimeInterval<span class="token punctuation">:</span><span class="token number">0.3</span> target<span class="token punctuation">:</span>self selector<span class="token punctuation">:</span>@selector<span class="token punctuation">(</span>test<span class="token punctuation">)</span> userInfo<span class="token punctuation">:</span>nil repeats<span class="token punctuation">:</span>YES<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token operator">//</span>手动添加到runloop  可以指定Mode
+NSTimer <span class="token operator">*</span> timer <span class="token operator">=</span><span class="token punctuation">[</span>NSTimer timerWithTimeInterval<span class="token punctuation">:</span><span class="token number">1.0</span> target<span class="token punctuation">:</span>self selector<span class="token punctuation">:</span>@selector<span class="token punctuation">(</span>test<span class="token punctuation">)</span> userInfo<span class="token punctuation">:</span>nil repeats<span class="token punctuation">:</span>YES<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">[</span><span class="token punctuation">[</span>NSRunLoop currentRunLoop<span class="token punctuation">]</span> addTimer<span class="token punctuation">:</span>timer forMode<span class="token punctuation">:</span>NSRunLoopCommonModes<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>这样声明的NSTimer可以解决在滑动scrollView时NSTimer不工作的问题。forMode:NSRunLoopCommonModes的意思为，定时器可以运行在标记为common modes模式下。具体包括两种: kCFRunloopDefaultMode  和   UITrackingRunloopMode。</p>
+<h4 id="2-2-常驻线程"><a href="#2-2-常驻线程" class="headerlink" title="2.2 常驻线程"></a>2.2 常驻线程</h4><pre class=" language-python"><code class="language-python">NSThread <span class="token operator">*</span> thread  <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>NSThread alloc<span class="token punctuation">]</span> initWithTarget<span class="token punctuation">:</span>self selector<span class="token punctuation">:</span>@selector<span class="token punctuation">(</span><span class="token operator">&lt;</span><span class="token comment" spellcheck="true">#selector#>) object:nil];</span>
+<span class="token punctuation">[</span>thread start<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+<p>通常执行完方法后线程就销毁了，那么现在有这样的需求，需要一条子线程一直存在，等待处理任务，与主线程之间互不干扰  (可以类比主线程存在原理，即添加消息循环Runloop)</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>通过添加port 或者timer
+<span class="token punctuation">[</span><span class="token punctuation">[</span>NSRunLoop currentRunLoop<span class="token punctuation">]</span> addPort<span class="token punctuation">:</span><span class="token punctuation">[</span>NSPort port<span class="token punctuation">]</span> forMode<span class="token punctuation">:</span>NSDefaultRunLoopMode<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">[</span><span class="token punctuation">[</span>NSRunLoop currentRunLoop<span class="token punctuation">]</span> run<span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          
+            <a href="/tags/NSRunLoop/" rel="tag"># NSRunLoop</a>
+          
+            <a href="/tags/多线程/" rel="tag"># 多线程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/25/高德地图仿美团定位/" rel="next" title="高德地图-仿美团外卖可拖拽地图定位">
+                <i class="fa fa-chevron-left"></i> 高德地图-仿美团外卖可拖拽地图定位
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/sylheader.jpg"
+               alt="宋雁翎" />
+          <p class="site-author-name" itemprop="name">宋雁翎</p>
+           
+              <p class="site-description motion-element" itemprop="description">心不怨恨则伟大，心存宽恕则圣洁。</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/3104041997/profile" target="_blank" title="微博">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      微博
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/scarlet-51/activities" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      知乎
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.douban.com/people/songyanlingyl/" target="_blank" title="豆瓣">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      豆瓣
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://slidoooor.github.io/" target="_blank" title="友情博客">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      友情博客
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-NSRunLoop的实现机制"><span class="nav-number">1.</span> <span class="nav-text">1. NSRunLoop的实现机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-NSRunLoop与程序"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 NSRunLoop与程序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-NSRunLoop与线程之间的关系"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 NSRunLoop与线程之间的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-1-NSRunloop常用方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">1.2.1 NSRunloop常用方法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-2-Mode"><span class="nav-number">1.2.2.</span> <span class="nav-text">1.2.2 Mode</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-输入源-Input-Sources"><span class="nav-number">1.3.</span> <span class="nav-text">1.3  输入源(Input Sources)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-1-Port-Based-Sources"><span class="nav-number">1.3.1.</span> <span class="nav-text">1.3..1 Port-Based Sources</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-2-Custom-Input-Sources"><span class="nav-number">1.3.2.</span> <span class="nav-text">1.3.2 Custom Input Sources</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-3-Cocoa-Perform-Selector-Sources"><span class="nav-number">1.3.3.</span> <span class="nav-text">1.3.3 Cocoa Perform Selector Sources</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-4-Timer-Sources"><span class="nav-number">1.4.</span> <span class="nav-text">1.4 Timer Sources</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-5-NSRunloop观察者"><span class="nav-number">1.5.</span> <span class="nav-text">1.5 NSRunloop观察者</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-实际应用"><span class="nav-number">2.</span> <span class="nav-text">2. 实际应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-NSTimer"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 NSTimer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-常驻线程"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 常驻线程</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 &mdash; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">宋雁翎</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Pisces
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
