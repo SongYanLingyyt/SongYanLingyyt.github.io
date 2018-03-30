@@ -673,6 +673,32 @@
 
 
 
+   
+   
+   
+   
+   <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+   <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+   
+       <script type="text/javascript">
+           function ShowGitment(){
+               document.getElementById("gitment-display-button").style.display = "none";
+               document.getElementById("gitment-container").style.display = "block";
+               var gitment = new Gitment({
+                   id: document.location.href, 
+                   owner: 'songyanling',
+                   repo: 'SongYanLingyyt.github.io',
+                   oauth: {
+                       client_id: '4528a36dffc680a21ec9',
+                       client_secret: 'a534e5c827c625def1e17ad6bf7adad9f77e397a',
+                   }});
+               gitment.render('gitment-container');
+           }
+       </script>
+   
+
+
+
   
 
 
