@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Objective-C,安全性," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="iOS应用的安全性至关重要，但是iOS应用的安全性，常常被大家忽视。最近查了相关资料研究了一下客户端安全性的处理，下面我们分析iOS应用中可能会存在的安全风险以及相对应的处理方式。 1、网络安全在网络请求中，我们经常使用两种请求方式：GET和POST。如果是用GET发送请求，当我们采用明文的方式给服务器发送数据，数据里面还包含一些敏感数据如账号密码，这些数据都是包装在URL中，并且服务器的访问日志">
+<meta name="keywords" content="Objective-C,安全性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS客户端安全性的处理方式">
+<meta property="og:url" content="http://yoursite.com/2018/02/03/iOS客户端安全性的处理方式/index.html">
+<meta property="og:site_name" content="如果我睡着了世界就和我没有关系">
+<meta property="og:description" content="iOS应用的安全性至关重要，但是iOS应用的安全性，常常被大家忽视。最近查了相关资料研究了一下客户端安全性的处理，下面我们分析iOS应用中可能会存在的安全风险以及相对应的处理方式。 1、网络安全在网络请求中，我们经常使用两种请求方式：GET和POST。如果是用GET发送请求，当我们采用明文的方式给服务器发送数据，数据里面还包含一些敏感数据如账号密码，这些数据都是包装在URL中，并且服务器的访问日志">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-30T06:26:38.348Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS客户端安全性的处理方式">
+<meta name="twitter:description" content="iOS应用的安全性至关重要，但是iOS应用的安全性，常常被大家忽视。最近查了相关资料研究了一下客户端安全性的处理，下面我们分析iOS应用中可能会存在的安全风险以及相对应的处理方式。 1、网络安全在网络请求中，我们经常使用两种请求方式：GET和POST。如果是用GET发送请求，当我们采用明文的方式给服务器发送数据，数据里面还包含一些敏感数据如账号密码，这些数据都是包装在URL中，并且服务器的访问日志">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/02/03/iOS客户端安全性的处理方式/"/>
+
+
+
+
+
+  <title>iOS客户端安全性的处理方式 | 如果我睡着了世界就和我没有关系</title>
+  
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">如果我睡着了世界就和我没有关系</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">做一个善良的女子。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/03/iOS客户端安全性的处理方式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="宋雁翎">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/sylheader.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="如果我睡着了世界就和我没有关系">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS客户端安全性的处理方式</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-03T14:01:02+08:00">
+                2018-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/iOS/" itemprop="url" rel="index">
+                    <span itemprop="name">iOS</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>iOS应用的安全性至关重要，但是iOS应用的安全性，常常被大家忽视。最近查了相关资料研究了一下客户端安全性的处理，下面我们分析iOS应用中可能会存在的安全风险以及相对应的处理方式。</p>
+<h3 id="1、网络安全"><a href="#1、网络安全" class="headerlink" title="1、网络安全"></a>1、网络安全</h3><p>在网络请求中，我们经常使用两种请求方式：GET和POST。如果是用GET发送请求，当我们采用明文的方式给服务器发送数据，数据里面还包含一些敏感数据如账号密码，这些数据都是包装在URL中，并且服务器的访问日志会记录，所以黑客一旦攻破服务器，可以轻易获得所有用户的账号密码。POST相对于GET来说，要相对安全一些，我们发给服务器的数据是包装在请求体中，不会直接暴露在url中。但是其实POST也是不安全的，在MAC电脑上可以利用Charles软件（如果在Windows下，可以使用Fiddler软件）来将自己的电脑设置成代理服务器，从而截取应用的网络请求，所以GET和POST都是不安全的。这时，为了防止账号密码泄漏，我们要对其进行加密。加密的方式有很多种，最简单的就是base64加密，但是base64 过于简单，很容易破解，不推荐使用。第二种就是md5加密，其核心思想是从给定的数据中提取特征码，不容产生重复，安全性比较高，在计算机安全领域使用的比较广泛，但是现在也有专门的网站对md5进行破解，为了使MD5加密更安全，我们会进行加盐，HMac，加时间戳等，提高安全级别和破解难度。第三种就是对称加密和非对称加密。非对称加密:事先生成一对用于加密的公私钥，客户端在登录时，使用公钥将用户的密码加密后，将密文传输到服务器。服务器使用私钥将密码解密。这样的做法，保证黑客即使截获了加密后的密文，由于没有私钥，也无法还原出原始的密码。</p>
+<p><strong>下面介绍一下常用的MD5进行密码加密</strong>：</p>
+<p>使用时请导入</p>
+<pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#import &lt;CommonCrypto/CommonCrypto.h></span>
+</code></pre>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>请在NSString中实现
+<span class="token operator">-</span> <span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>md5String <span class="token punctuation">{</span>
+const charchar <span class="token operator">*</span>str <span class="token operator">=</span> self<span class="token punctuation">.</span>UTF8String<span class="token punctuation">;</span>
+unsigned char buffer<span class="token punctuation">[</span>CC_MD5_DIGEST_LENGTH<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+CC_MD5<span class="token punctuation">(</span>str<span class="token punctuation">,</span> <span class="token punctuation">(</span>CC_LONG<span class="token punctuation">)</span>strlen<span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">,</span> buffer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">return</span> <span class="token punctuation">[</span>self stringFromBytes<span class="token punctuation">:</span>buffer length<span class="token punctuation">:</span>CC_MD5_DIGEST_LENGTH<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>但是MD5现在暴力破解横行，所以可以考虑加盐，</p>
+<pre class=" language-python"><code class="language-python">static NSString <span class="token operator">*</span>salt <span class="token operator">=</span> @<span class="token string">"尽量长且复杂的字符串,且服务器需要知道你加了什么"</span><span class="token punctuation">;</span>
+
+<span class="token operator">-</span> <span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>md5String<span class="token punctuation">:</span><span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>string<span class="token punctuation">{</span>
+NSString <span class="token operator">*</span>str <span class="token operator">=</span> <span class="token punctuation">[</span>string stringByAppendingString<span class="token punctuation">:</span>salt<span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token operator">//</span>加盐位置取决于你想要的效果和你跟服务器交流的结果
+<span class="token keyword">return</span> <span class="token punctuation">[</span>str md5String<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>但是这样也可能被拦截破解-_-，然后你就可以选择在加上HMAC+MD5,生成方法如下，</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">-</span> <span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>hmacMD5StringWithKey<span class="token punctuation">:</span><span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>key <span class="token punctuation">{</span>
+const charchar <span class="token operator">*</span>keyData <span class="token operator">=</span> key<span class="token punctuation">.</span>UTF8String<span class="token punctuation">;</span>
+const charchar <span class="token operator">*</span>strData <span class="token operator">=</span> self<span class="token punctuation">.</span>UTF8String<span class="token punctuation">;</span>
+unsigned char buffer<span class="token punctuation">[</span>CC_MD5_DIGEST_LENGTH<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+CCHmac<span class="token punctuation">(</span>kCCHmacAlgMD5<span class="token punctuation">,</span> keyData<span class="token punctuation">,</span> strlen<span class="token punctuation">(</span>keyData<span class="token punctuation">)</span><span class="token punctuation">,</span> strData<span class="token punctuation">,</span> strlen<span class="token punctuation">(</span>strData<span class="token punctuation">)</span><span class="token punctuation">,</span> buffer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">return</span> <span class="token punctuation">[</span>self stringFromBytes<span class="token punctuation">:</span>buffer length<span class="token punctuation">:</span>CC_MD5_DIGEST_LENGTH<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>按照教程上说基本这样就差不多了，但是某些可能要求高的可能觉得还是不太安全，然后就引入了时间戳。<br>教程上写的是现将密码传给服务器,然后双方共同在密码后面加上时间戳，再以HMAC+MD5生成码是否相同来验证！</p>
+<p>但是问题是,服务器还是获得了你的明文密码，而且中途如果拦截了就没我们什么事了！</p>
+<p>所以我觉得可以在注册时发送给服务器以密码+HMAC+MD5，然后登陆的时候验证双方在这个MD5生成码后加时间戳再HMAC+MD5！</p>
+<p>然后就产生了一个注意点,服务器需要验证的是这一分钟和上一分钟的密码，因为客户端到服务器有可能有延迟！</p>
+<pre class=" language-python"><code class="language-python"><span class="token operator">//</span>请在NSString类别中实现
+<span class="token operator">-</span> <span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>hmacMd5String<span class="token punctuation">:</span><span class="token punctuation">(</span>NSString <span class="token operator">*</span><span class="token punctuation">)</span>string<span class="token punctuation">{</span>
+string <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>string stringByAppendingString<span class="token punctuation">:</span>salt<span class="token punctuation">]</span>hmacMD5StringWithKey<span class="token punctuation">:</span>@<span class="token string">"will"</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+NSDate <span class="token operator">*</span>date <span class="token operator">=</span> <span class="token punctuation">[</span>NSDate date<span class="token punctuation">]</span><span class="token punctuation">;</span>
+NSDateFormatter <span class="token operator">*</span>formatter <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>NSDateFormatter alloc<span class="token punctuation">]</span>init<span class="token punctuation">]</span><span class="token punctuation">;</span>
+formatter<span class="token punctuation">.</span>timeZone <span class="token operator">=</span> <span class="token punctuation">[</span>NSTimeZone systemTimeZone<span class="token punctuation">]</span><span class="token punctuation">;</span>
+formatter<span class="token punctuation">.</span>dateFormat <span class="token operator">=</span> @<span class="token string">"yyyy-MM-dd_HH:mm"</span><span class="token punctuation">;</span>
+NSString <span class="token operator">*</span>dateString <span class="token operator">=</span> <span class="token punctuation">[</span>formatter stringFromDate<span class="token punctuation">:</span>date<span class="token punctuation">]</span><span class="token punctuation">;</span>
+NSString <span class="token operator">*</span>dateStringLast <span class="token operator">=</span> <span class="token punctuation">[</span>formatter stringFromDate<span class="token punctuation">:</span><span class="token punctuation">[</span>date dateByAddingTimeInterval<span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">60</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+NSString <span class="token operator">*</span>serverString <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>string stringByAppendingString<span class="token punctuation">:</span>dateString<span class="token punctuation">]</span> hmacMD5StringWithKey<span class="token punctuation">:</span>@<span class="token string">"will"</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+NSString <span class="token operator">*</span>serverStringLastMin <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>string stringByAppendingString<span class="token punctuation">:</span>dateStringLast<span class="token punctuation">]</span>hmacMD5StringWithKey<span class="token punctuation">:</span>@<span class="token string">"will"</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token operator">//</span>服务器除了需要验证上一个字符串<span class="token punctuation">,</span>还需要验证上一分钟的字符串
+<span class="token keyword">return</span> serverString<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>整个过程大体是：首先客户端先进性注册,然后客户端将注册好的密码加盐加hmac加MD5(假设生成码为key)发给服务器端,然后服务器端保存的也就是MD5生成码</p>
+<p>然后在登录的时候客户端发送的是key+时间+hmac+MD5,服务器验证的也是将MD5key+(时间or时间-1分钟)+hmac+MD5！</p>
+<p>当然最重要的是实现按时间换密码的功能需要服务器与客户端共同实现！</p>
+<p>过程中可以考虑加入其它加密技术，密码加密利用的是其不可逆，只要生成过程够复杂，加上时间戳,基本能满足普通用户要求！</p>
+<p>而现实中现在用到的有手机验证，二维码验证之类的，也可以加入考虑！</p>
+<h3 id="2、协议问题"><a href="#2、协议问题" class="headerlink" title="2、协议问题"></a>2、协议问题</h3><p>iOS9.0 之前，做网络请求时时用http协议，但是http协议是不安全协议，很容易被攻破，在成功破解了通信协议后，黑客可以模拟客户端登录，进而伪造一些用户行为，可能对用户数据造成危害。像我们平常听到的游戏代练，刷分，其实是游戏的通信协议被破解，黑客制作出了代练的机器人程序。在iOS9.0后，苹果推荐采用https协议进行网络数据传输。当然，如果自己手上有更好更安全的协议，可以用自己的。</p>
+<h3 id="3、本地文件安全"><a href="#3、本地文件安全" class="headerlink" title="3、本地文件安全"></a>3、本地文件安全</h3><p>iOS应用的数据在本地通常保存在本地文件或本地数据库中。如果对本地的数据不进行加密处理，很可能被黑客篡改，所以我们要对重要的数据进行加密，根据重要程度选择安全性可靠的方式。</p>
+<h3 id="4、源代码安全"><a href="#4、源代码安全" class="headerlink" title="4、源代码安全"></a>4、源代码安全</h3><p>应用程序上架需要编译成二进制文件，这些二进制文件也是存在安全隐患。黑客可以通知反编译工具，对这个文件进行反编译。对于Objective-C代码，它常常可以反汇编到可以方便阅读的程度，这对于程序的安全性，也是一个很大的危害。因为通过阅读源码，黑客可以更加方便地分析出应用的通信协议和数据加密方式。一般我们应对的方式给我们的代码加一些东西，混淆源代码的内容，比如定义一些乱其八糟的宏，比如打乱代码的顺序等。这样，就算文件被反编译成功，也需要花大量的时间去破解。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          
+            <a href="/tags/安全性/" rel="tag"># 安全性</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/18/NSRunLoop的实现机制及在多线程中的应用/" rel="next" title="NSRunLoop的实现机制及在多线程中的应用">
+                <i class="fa fa-chevron-left"></i> NSRunLoop的实现机制及在多线程中的应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        
+  <div class="bdsharebuttonbox">
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网"></a>
+    <a href="#" class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a href="#" class="bds_tieba" data-cmd="tieba" title="分享到百度贴吧"></a>
+    <a href="#" class="bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+    <a href="#" class="bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+    <a href="#" class="bds_more" data-cmd="more"></a>
+    <a class="bds_count" data-cmd="count"></a>
+  </div>
+  <script>
+    window._bd_share_config = {
+      "common": {
+        "bdText": "",
+        "bdMini": "2",
+        "bdMiniList": false,
+        "bdPic": ""
+      },
+      "share": {
+        "bdSize": "16",
+        "bdStyle": "0"
+      },
+      "image": {
+        "viewList": ["tsina", "douban", "sqq", "qzone", "weixin", "twi", "fbook"],
+        "viewText": "分享到：",
+        "viewSize": "16"
+      }
+    }
+  </script>
+
+<script>
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/sylheader.jpg"
+               alt="宋雁翎" />
+          <p class="site-author-name" itemprop="name">宋雁翎</p>
+           
+              <p class="site-description motion-element" itemprop="description">心不怨恨则伟大，心存宽恕则圣洁。</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/3104041997/profile" target="_blank" title="微博">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      微博
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/scarlet-51/activities" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      知乎
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.douban.com/people/songyanlingyl/" target="_blank" title="豆瓣">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      豆瓣
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://slidoooor.github.io/" target="_blank" title="友情博客">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      友情博客
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1、网络安全"><span class="nav-number">1.</span> <span class="nav-text">1、网络安全</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2、协议问题"><span class="nav-number">2.</span> <span class="nav-text">2、协议问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3、本地文件安全"><span class="nav-number">3.</span> <span class="nav-text">3、本地文件安全</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4、源代码安全"><span class="nav-number">4.</span> <span class="nav-text">4、源代码安全</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 &mdash; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">宋雁翎</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Pisces
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
